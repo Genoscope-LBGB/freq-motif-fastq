@@ -53,7 +53,8 @@ fn main() {
     // Create the output directory if it doesn't exist
     fs::create_dir_all(&output_dir).expect("Failed to create output directory");
 
-    let output_csv = output_dir.join("output.csv");
+    let output_csv = output_dir.join("freq-motif.csv");
+    let output_graph = output_dir.join("barplot_freq-motif.png");
     let fasta_file = output_dir.join("temp.fasta");
 
     eprintln!("Opening the input file: {}", input_file);
@@ -94,14 +95,28 @@ fn main() {
     sorted_proportions.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
     eprintln!("Saving results to CSV: {}", output_csv.display());
-    save_to_csv(output_csv, &sorted_proportions).expect("Error saving the CSV file");
+    save_to_csv(&output_csv, &sorted_proportions).expect("Error saving the CSV file");
+
+    eprintln!("Running R script for barplot...");
+    let status = Command::new("generate_barplot.R")
+        .arg(output_csv.as_os_str())
+        .arg(output_graph.as_os_str())
+        .arg(args.ratio.to_string()) // Pass the -r parameter
+        .status()
+        .expect("Failed to run Rscript");
+
+    if !status.success() {
+        eprintln!("Rscript execution failed");
+        std::process::exit(1);
+    }
 
     eprintln!("Cleaning up temporary files...");
     fs::remove_file(&fasta_file).expect("Failed to remove temporary FASTA file");
 
     eprintln!(
-        "Analysis completed successfully. Results saved in directory: '{}'.",
-        output_dir.display()
+        "Analysis completed successfully. Results saved to '{}' and '{}'.",
+        output_csv.display(),
+        output_graph.display()
     );
 }
 
@@ -264,11 +279,11 @@ fn parse_dust_output(
 
 /// Saves the results to a CSV file
 fn save_to_csv(
-    output_file: PathBuf,
+    output_file: &PathBuf,
     data: &[(String, f64)],
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut file = File::create(output_file)?;
-    writeln!(file, "Motif,Proportion (%)")?;
+    writeln!(file, "Motif,Proportion")?;
     for (motif, proportion) in data {
         writeln!(file, "{},{:.4}", motif, proportion)?;
     }

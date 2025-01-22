@@ -31,9 +31,9 @@ p <- ggplot(data, aes(x = reorder(Motif, -Proportion), y = Proportion, fill = Ty
   geom_bar(stat = "identity") +
   scale_fill_manual(values = colors) +
   labs(
-    title = sprintf("Proportion of reads with at least %.1f%% of given motif", ratio),
+    title = sprintf("Proportion of reads with at least %.0f%% of the specified motif", ratio),
     x = "Motif",
-    y = "Proportion"
+    y = "Proportion (%)"
   ) +
   theme_minimal() +
   theme(
@@ -43,15 +43,19 @@ p <- ggplot(data, aes(x = reorder(Motif, -Proportion), y = Proportion, fill = Ty
     panel.grid.major = element_line(color = "gray90"),
     panel.grid.minor = element_line(color = "gray95")
   ) +
-  coord_cartesian(ylim = c(0, 0.05))  # Keep bars beyond 0.05 but limit the y-axis display
+  coord_cartesian(ylim = c(0, 0.5))  # Keep bars beyond 0.05 but limit the y-axis display
 
-# Add labels for bars exceeding 0.05
+# Add labels for bars exceeding 0.5
 p <- p + geom_text(
   aes(
-    label = ifelse(Proportion > 0.05, sprintf("%.4f", Proportion), ""),
-    y = ifelse(Proportion > 0.05, 0.05, Proportion)
+    label = ifelse(Proportion > 0.1, 
+               sprintf("%.2f", Proportion), 
+               ifelse(Proportion > 0.05, 
+                      sprintf("%.3f", Proportion), 
+                      "")),
+    y = ifelse(Proportion > 0.5, 0.5, Proportion)
   ),
-  vjust = 0.5,
+  vjust = -0.1,
   color = "black",
   size = 4
 )
