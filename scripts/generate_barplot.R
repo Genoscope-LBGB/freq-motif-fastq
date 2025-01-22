@@ -22,14 +22,24 @@ data$Type <- ifelse(
   ifelse(nchar(as.character(data$Motif)) == 2, "DiNucleotide", "TriNucleotide")
 )
 
-# Define custom colors for the motif types
-colors <- c("LowComplexity" = "red", "DiNucleotide" = "blue", "TriNucleotide" = "lightblue")
+# Assign dynamic colors to "LowComplexity" based on its value
+data$LowComplexityColor <- ifelse(
+  data$Motif == "LowComplexity" & data$Proportion > 10, "red",
+  ifelse(data$Motif == "LowComplexity" & data$Proportion > 5, "orange", 
+         ifelse(data$Motif == "LowComplexity", "green", NA))
+)
+
+# Assign colors for other types
+data$TypeColor <- ifelse(data$Type == "DiNucleotide", "blue", "lightblue")
+
+# Combine colors into a single column for plotting
+data$FinalColor <- ifelse(!is.na(data$LowComplexityColor), data$LowComplexityColor, data$TypeColor)
 
 # Create the barplot
 library(ggplot2)
-p <- ggplot(data, aes(x = reorder(Motif, -Proportion), y = Proportion, fill = Type)) +
+p <- ggplot(data, aes(x = reorder(Motif, -Proportion), y = Proportion, fill = FinalColor)) +
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = colors) +
+  scale_fill_identity() +  # Use the exact colors specified in the FinalColor column
   labs(
     title = sprintf("Proportion of reads with at least %.0f%% of the specified motif", ratio),
     x = "Motif",
