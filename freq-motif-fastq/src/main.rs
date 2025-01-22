@@ -25,7 +25,7 @@ struct Args {
     max_reads: usize,
 
     /// Minimum proportion to consider (in percentage)
-    #[arg(short, long, default_value_t = 20.0)]
+    #[arg(short, long, default_value_t = 50.0)]
     ratio: f64,
 
     /// Number of initial reads to skip
