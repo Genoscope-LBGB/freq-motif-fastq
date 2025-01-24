@@ -24,7 +24,8 @@ struct Args {
     #[arg(short, long, default_value_t = 100_000)]
     max_reads: usize,
 
-    /// Minimum proportion to consider (in percentage). Be aware that changing this value will affect the readability of the output graph.
+    /// Minimum proportion to consider (in percentage).
+    /// Be aware that changing this value will affect the readability of the output graph.
     #[arg(short, long, default_value_t = 15.0)]
     ratio: f64,
 
