@@ -24,8 +24,8 @@ struct Args {
     #[arg(short, long, default_value_t = 100_000)]
     max_reads: usize,
 
-    /// Minimum proportion to consider (in percentage)
-    #[arg(short, long, default_value_t = 50.0)]
+    /// Minimum proportion to consider (in percentage). Be aware that changing this value will affect the readability of the output graph.
+    #[arg(short, long, default_value_t = 15.0)]
     ratio: f64,
 
     /// Number of initial reads to skip
@@ -171,10 +171,10 @@ fn process_reads_and_write_fasta<R: BufRead>(
 
     // Skip the first `skip_reads` reads
     for _ in 0..skip_reads {
-        lines.next(); // Header
-        lines.next(); // Sequence
-        lines.next(); // '+'
-        lines.next(); // Quality
+        lines.next();
+        lines.next();
+        lines.next();
+        lines.next();
     }
 
     while let Some(Ok(header)) = lines.next() {
@@ -195,7 +195,7 @@ fn process_reads_and_write_fasta<R: BufRead>(
                 eprintln!("Processed {} reads...", total_reads);
             }
 
-            let read_id = &header[1..];
+            let read_id = header.split_whitespace().next().unwrap_or("");
 
             // Write to FASTA for SDUST
             writeln!(fasta_writer, ">{}", read_id).expect("Failed to write FASTA header");
@@ -264,7 +264,6 @@ fn parse_dust_output(
             *masked_bases.entry(read_name).or_insert(0) += length;
         }
     }
-
     for (read_name, masked) in masked_bases {
         if let Some(&total_length) = read_lengths.get(&read_name) {
             let proportion = (masked as f64) / (total_length as f64);
