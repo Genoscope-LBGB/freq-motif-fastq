@@ -11,10 +11,10 @@ output_png <- args[2]
 ratio <- as.numeric(args[3])
 
 # Read the CSV data
-data <- read.csv(input_csv)
+data_f <- read.csv(input_csv)
 
 # Filter out rows where the proportion is zero
-data <- data[data$Proportion > 1.0, ]
+data <- data_f[data_f$Proportion > 1.0, ]
 
 # Add a column to classify motifs for coloring
 data$Type <- ifelse(
@@ -30,7 +30,7 @@ data$LowComplexityColor <- ifelse(
 )
 
 # Extract the LowComplexity proportion value
-low_complexity_value <- data$Proportion[data$Motif == "LowComplexity"]
+low_complexity_value <- data_f$Proportion[data_f$Motif == "LowComplexity"]
 
 # Assign colors for other types
 data$TypeColor <- ifelse(
