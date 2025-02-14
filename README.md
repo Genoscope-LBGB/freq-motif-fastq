@@ -76,4 +76,4 @@ To use freq-motif-fastq, run the following command with the desired options:
 ![Barplot example](examples/barplot_freq-motif.png)
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the CeCILL License - see the [LICENSE file](http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html) for details.
