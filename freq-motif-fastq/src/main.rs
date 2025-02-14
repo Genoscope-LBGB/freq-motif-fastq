@@ -10,7 +10,13 @@ use uuid::Uuid;
 
 /// Analyze FASTQ files (including gzip) and generate statistics on motifs and low-complexity bases
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(
+    author = "Jean-Marc Aury", 
+    version = None, 
+    about = "Analyze FASTQ files and generate statistics on motifs and low-complexity bases", 
+    long_about = None,
+    after_help = "Additional Information:\nCould be short- or long-reads, but only the first 150 base pairs of each read will be used.\nIf a read is longer than 1,000 base pairs, the 150 base pairs between positions 850 and 1,000 will be used instead."
+)]
 struct Args {
     /// Input FASTQ file (supports gzip)
     #[arg(short, long)]
@@ -178,6 +184,11 @@ fn process_reads_and_write_fasta<R: BufRead>(
         lines.next();
     }
 
+    // Length to take into account
+    let processing_length = 150;
+    // Minimal length to take into account 150bp from position (1000-150) instead of first position
+    let sequence_length_threshold = 1000;
+
     while let Some(Ok(header)) = lines.next() {
         if let Some(Ok(sequence)) = lines.next() {
             if total_reads >= max_reads {
@@ -185,9 +196,22 @@ fn process_reads_and_write_fasta<R: BufRead>(
             }
 
             let length = sequence.len();
-            if length < 2 {
+            if length < 50 {
                 continue;
             }
+
+            // Adjust the sequence based on its length
+            let adjusted_sequence = if length > processing_length {
+                if length < sequence_length_threshold {
+                    &sequence[..processing_length]
+                } else {
+                    &sequence
+                        [(sequence_length_threshold - processing_length)..sequence_length_threshold]
+                }
+            } else {
+                // Use full sequence if shorter than 150 bp
+                &sequence
+            };
 
             // Increment total_reads only for valid sequences
             total_reads += 1;
@@ -200,21 +224,25 @@ fn process_reads_and_write_fasta<R: BufRead>(
 
             // Write to FASTA for SDUST
             writeln!(fasta_writer, ">{}", read_id).expect("Failed to write FASTA header");
-            writeln!(fasta_writer, "{}", sequence).expect("Failed to write FASTA sequence");
+            writeln!(fasta_writer, "{}", adjusted_sequence)
+                .expect("Failed to write FASTA sequence");
             read_lengths.insert(read_id.to_string(), length);
 
             let mut motif_frequencies: HashMap<String, u64> = HashMap::new();
 
+            // Update length based on adjusted sequence
+            let length = adjusted_sequence.len();
+
             for i in 0..length {
                 if i + 2 <= length {
-                    let dinucleotide = &sequence[i..i + 2];
+                    let dinucleotide = &adjusted_sequence[i..i + 2];
                     *motif_frequencies
                         .entry(dinucleotide.to_string())
                         .or_insert(0) += 1;
                 }
 
                 if i + 3 <= length {
-                    let trinucleotide = &sequence[i..i + 3];
+                    let trinucleotide = &adjusted_sequence[i..i + 3];
                     *motif_frequencies
                         .entry(trinucleotide.to_string())
                         .or_insert(0) += 1;

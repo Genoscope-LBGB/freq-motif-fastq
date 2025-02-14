@@ -65,7 +65,7 @@ p <- ggplot(data, aes(x = reorder(Motif, -Proportion), y = Proportion, fill = Fi
 # Add labels for bars exceeding 50
 p <- p + geom_text(
   aes(
-    label = sprintf("%.2f", Proportion),
+    label = sprintf("%.1f", Proportion),
     y = ifelse(Proportion > 50, 50, Proportion)
   ),
   vjust = -0.1,
