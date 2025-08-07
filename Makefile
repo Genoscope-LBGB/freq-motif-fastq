@@ -1,10 +1,7 @@
-all: coucou
-
-coucou:
-	echo "Coucou"
+all:
 
 install:
-	. /env/products/fgtools/2.0/bin/fg_bashfix && module load rust && cargo install --root . --path freq-motif-fastq
+	module load rust && cargo install --root . --path freq-motif-fastq
 	$(MAKE) install-bin
 
 install-bin:
