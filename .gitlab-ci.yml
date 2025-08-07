@@ -3,6 +3,7 @@ include:
     file: cicd.yml
     inputs:
       module-name: "freq-motif-fastq"
+      cd-branch: "main"
 
 stages: 
   - deploy
