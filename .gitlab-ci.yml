@@ -10,3 +10,7 @@ stages:
 deploy:
   stage: deploy
   extends: .deploy
+
+deploy-futur:
+  stage: deploy
+  extends: .deploy-futur
